@@ -80,7 +80,7 @@ def confirm_payment(request, queue_id):
 
     if queue_member.payment_status != 'pending':
         messages.info(request, 'Your payment has already been processed.')
-        return redirect('savings:queue_detail', queue_id=queue.id)
+        return redirect('dashboard:home')
 
     if request.method == 'POST':
         form = PaymentConfirmationForm(request.POST, request.FILES, instance=queue_member)
@@ -105,20 +105,20 @@ def confirm_payment(request, queue_id):
                 message=f'Your payment for the {queue.tier.name} tier has been confirmed.'
             )
 
-            # Check if this completes the queue and handle payouts if needed
+            # Check if this completes the queue
             if queue.is_full and queue.status == 'pending':
                 queue.status = 'active'
                 queue.save()
 
-                # Notify the creator that their queue is ready for payout
+                # Notify the creator
                 Notification.objects.create(
                     user=queue.creator,
                     notification_type='payout_ready',
                     message=f'Your {queue.tier.name} tier queue is now full and ready for payout!'
                 )
 
-            messages.success(request, 'Your payment has been confirmed!')
-            return redirect('savings:queue_detail', queue_id=queue.id)
+            messages.success(request, 'Your payment has been confirmed! You can view your queue status in the dashboard.')
+            return redirect('dashboard:home')
     else:
         form = PaymentConfirmationForm(instance=queue_member)
 

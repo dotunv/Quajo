@@ -30,7 +30,7 @@
                 <button class="lg:hidden" type="button" onclick="document.getElementById('navMenu').classList.toggle('hidden')">
                     <i class="fas fa-bars"></i>
                 </button>
-                <div id="navMenu" class="hidden lg:flex lg:items-center w-full lg:w-auto">
+                <div id="navMenu" class="hidden lg:flex lg:items-center w-full lg:w-auto transition-all duration-200">
                     <ul class="lg:flex space-x-4">
                         <li>
                             <a href="{% url 'savings:tier_list' %}" class="block py-2 px-3 hover:text-gray-300">Tiers</a>
@@ -50,9 +50,12 @@
                                 </a>
                             </li>
                             <li>
-                                <a href="{% url 'logout' %}" class="block py-2 px-3 hover:text-gray-300">
-                                    <i class="fas fa-sign-out-alt mr-1"></i> Logout
-                                </a>
+                                <form method="post" action="{% url 'logout' %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="block py-2 px-3 hover:text-gray-300 w-full text-left">
+                                        <i class="fas fa-sign-out-alt mr-1"></i> Logout
+                                    </button>
+                                </form>
                             </li>
                         {% else %}
                             <li>
