@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2 class="display-6">Global Queue Board</h2>
+        <p class="text-muted">Live view of all active saving queues</p>
+    </div>
+</div>
+
+{% for tier, queues in queues_by_tier.items %}
+<div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">{{ tier.name }} - ${{ tier.deposit_amount }} Tier</h5>
+    </div>
+    <div class="card-body">
+        {% if queues %}
+            {% for queue in queues %}
+            <div class="queue-card mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="mb-0">Queue #{{ queue.id|truncatechars:8 }}</h6>
+                    <span class="badge {% if queue.status == 'active' %}bg-success{% else %}bg-warning{% endif %}">
+                        {{ queue.get_status_display }}
+                    </span>
+                </div>
+                
+                <div class="progress queue-progress mb-2">
+                    <div class="progress-bar" 
+                         role="progressbar" 
+                         style="width: {{ queue.total_members|multiply:8.33 }}%"
+                         aria-valuenow="{{ queue.total_members }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="12">
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center">
+                    <small class="text-muted">
+                        <i class="fas fa-users"></i> {{ queue.total_members }}/12 members
+                    </small>
+                    <div>
+                        {% if queue.total_members < 12 %}
+                            <a href="{% url 'savings:join_tier' tier.id %}" 
+                               class="btn btn-sm btn-outline-primary">
+                                Join Queue
+                            </a>
+                        {% endif %}
+                        <a href="{% url 'savings:queue_detail' queue.id %}" 
+                           class="btn btn-sm btn-outline-secondary">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                
+                {% if not forloop.last %}
+                    <hr>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-info-circle fa-2x text-muted mb-3"></i>
+                <p class="text-muted">No active queues for this tier</p>
+                <a href="{% url 'savings:join_tier' tier.id %}" class="btn btn-primary">
+                    Start New Queue
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% empty %}
+<div class="text-center py-5">
+    <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+    <h4>No Active Queues</h4>
+    <p class="text-muted">Be the first to start a savings queue!</p>
+    <a href="{% url 'savings:tier_list' %}" class="btn btn-primary">
+        View Available Tiers
+    </a>
+</div>
+{% endfor %}
+
+{% endblock %} 
