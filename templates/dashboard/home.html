@@ -1,0 +1,135 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="flex flex-wrap justify-between items-center mb-6">
+    <div class="w-full md:w-1/2">
+        <h2 class="text-3xl font-light">Dashboard</h2>
+        <p class="text-gray-600">Welcome back, {{ user.username }}!</p>
+    </div>
+    <div class="w-full md:w-1/2 md:text-right mt-4 md:mt-0">
+        <a href="{% url 'savings:tier_list' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
+            <i class="fas fa-plus mr-2"></i> Join New Queue
+        </a>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+    <div class="bg-white rounded-lg shadow border-l-4 border-primary p-4">
+        <h6 class="text-gray-600 text-sm">Total Invested</h6>
+        <h3 class="text-2xl font-semibold my-2">${{ total_invested|floatformat:2 }}</h3>
+        <small class="text-gray-600 flex items-center">
+            <i class="fas fa-chart-line mr-1"></i> Active Queues: {{ active_queue_count }}
+        </small>
+    </div>
+    <div class="bg-white rounded-lg shadow border-l-4 border-primary p-4">
+        <h6 class="text-gray-600 text-sm">Total Earned</h6>
+        <h3 class="text-2xl font-semibold my-2">${{ total_earned|floatformat:2 }}</h3>
+        <small class="text-green-600 flex items-center">
+            <i class="fas fa-arrow-up mr-1"></i> From Completed Queues
+        </small>
+    </div>
+    <div class="bg-white rounded-lg shadow border-l-4 border-primary p-4">
+        <h6 class="text-gray-600 text-sm">Next Payout</h6>
+        {% if active_memberships %}
+            {% with next_queue=active_memberships.0 %}
+            <h3 class="text-2xl font-semibold my-2">${{ next_queue.queue.tier.payout_amount }}</h3>
+            <small class="text-gray-600">
+                Expected: {{ next_queue.queue.expected_payout_date|default:"Calculating..." }}
+            </small>
+            {% endwith %}
+        {% else %}
+            <h3 class="text-2xl font-semibold my-2">$0.00</h3>
+            <small class="text-gray-600">No active queues</small>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+    <!-- Active Queues -->
+    <div class="md:col-span-8">
+        <div class="bg-white rounded-lg shadow mb-6">
+            <div class="border-b px-4 py-3">
+                <h5 class="font-medium">Active Queues</h5>
+            </div>
+            <div class="p-4">
+                {% if queues_progress %}
+                    {% for progress in queues_progress %}
+                    <div class="mb-6 last:mb-0">
+                        <div class="flex justify-between items-center mb-2">
+                            <h6 class="font-medium">{{ progress.tier.name }} Queue #{{ progress.queue.id|truncatechars:8 }}</h6>
+                            <small class="text-gray-600">Position: {{ progress.position }}/12</small>
+                        </div>
+                        <div class="h-2.5 bg-gray-200 rounded-full mb-2">
+                            <div class="h-2.5 bg-primary rounded-full" style="width: {{ progress.percentage }}%"></div>
+                        </div>
+                        <small class="text-gray-600">
+                            {{ progress.total_members }}/12 members joined
+                        </small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-info-circle text-3xl text-gray-400 mb-3"></i>
+                        <p class="text-gray-600 mb-4">You have no active queues</p>
+                        <a href="{% url 'savings:tier_list' %}" class="inline-flex items-center px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
+                            Join a Queue
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="md:col-span-4">
+        <!-- Recent Transactions -->
+        <div class="bg-white rounded-lg shadow mb-6">
+            <div class="border-b px-4 py-3 flex justify-between items-center">
+                <h5 class="font-medium">Recent Transactions</h5>
+                <a href="{% url 'dashboard:transactions' %}" class="text-sm text-primary hover:text-primary/80">View All</a>
+            </div>
+            <div class="divide-y">
+                {% for transaction in recent_transactions %}
+                <div class="p-4">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <h6 class="font-medium mb-1">{{ transaction.description }}</h6>
+                            <small class="text-gray-600">{{ transaction.created_at|date:"M d, Y" }}</small>
+                        </div>
+                        <span class="{% if transaction.transaction_type == 'deposit' %}text-red-600{% else %}text-green-600{% endif %}">
+                            {% if transaction.transaction_type == 'deposit' %}-{% else %}+{% endif %}
+                            ${{ transaction.amount|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <p class="text-gray-600">No recent transactions</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Notifications -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="border-b px-4 py-3 flex justify-between items-center">
+                <h5 class="font-medium">Notifications</h5>
+                <a href="{% url 'dashboard:notifications' %}" class="text-sm text-primary hover:text-primary/80">View All</a>
+            </div>
+            <div class="divide-y">
+                {% for notification in notifications %}
+                <div class="p-4">
+                    <h6 class="font-medium mb-1">{{ notification.message }}</h6>
+                    <small class="text-gray-600">{{ notification.created_at|timesince }} ago</small>
+                </div>
+                {% empty %}
+                <div class="text-center py-8">
+                    <p class="text-gray-600">No new notifications</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

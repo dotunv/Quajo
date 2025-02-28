@@ -151,18 +151,19 @@ def queue_detail(request, queue_id):
 
 @login_required
 def my_queues(request):
-    # Get all queues the user is a member of
-    memberships = QueueMember.objects.filter(user=request.user).select_related('queue')
+    active_memberships = QueueMember.objects.filter(
+        user=request.user,
+        queue__status='active'
+    ).select_related('queue', 'queue__tier').order_by('position')
 
-    # Group by payment status
-    pending_payments = [m for m in memberships if m.payment_status == 'pending']
-    active_queues = [m for m in memberships if m.payment_status == 'confirmed' and m.queue.status == 'active']
-    completed_queues = [m for m in memberships if m.payment_status == 'confirmed' and m.queue.status == 'completed']
+    completed_memberships = QueueMember.objects.filter(
+        user=request.user,
+        queue__status='completed'
+    ).select_related('queue', 'queue__tier').order_by('-queue__completed_at')
 
     context = {
-        'pending_payments': pending_payments,
-        'active_queues': active_queues,
-        'completed_queues': completed_queues,
+        'active_memberships': active_memberships,
+        'completed_memberships': completed_memberships,
     }
     return render(request, 'savings/my_queues.html', context)
 

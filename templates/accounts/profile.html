@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="display-6">Profile</h2>
+        <p class="text-muted">Manage your account information</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <a href="{% url 'update_profile' %}" class="btn btn-primary">
+            <i class="fas fa-edit"></i> Edit Profile
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <!-- Personal Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Personal Information</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <div class="list-group-item">
+                    <small class="text-muted d-block">Username</small>
+                    <strong>{{ user.username }}</strong>
+                </div>
+                <div class="list-group-item">
+                    <small class="text-muted d-block">Email</small>
+                    <strong>{{ user.email }}</strong>
+                </div>
+                <div class="list-group-item">
+                    <small class="text-muted d-block">Date Joined</small>
+                    <strong>{{ user.profile.date_joined|date:"M d, Y" }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <!-- Payment Information -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Payment Information</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <div class="list-group-item">
+                    <small class="text-muted d-block">Phone Number</small>
+                    <strong>{{ user.profile.phone_number|default:"Not set" }}</strong>
+                </div>
+                <div class="list-group-item">
+                    <small class="text-muted d-block">USDT Wallet Address</small>
+                    <strong class="text-break">{{ user.profile.usdt_wallet_address|default:"Not set" }}</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activity Summary -->
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Activity Summary</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4">
+                        <h3>{{ active_queues_count|default:"0" }}</h3>
+                        <p class="text-muted">Active Queues</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>${{ total_invested|default:"0"|floatformat:2 }}</h3>
+                        <p class="text-muted">Total Invested</p>
+                    </div>
+                    <div class="col-md-4">
+                        <h3>${{ total_earned|default:"0"|floatformat:2 }}</h3>
+                        <p class="text-muted">Total Earned</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

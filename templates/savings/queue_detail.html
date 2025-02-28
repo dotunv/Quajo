@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-8">
+        <h2 class="display-6">Queue Details</h2>
+        <p class="text-muted">{{ queue.tier.name }} - Queue #{{ queue.id|truncatechars:8 }}</p>
+    </div>
+    <div class="col-md-4 text-md-end">
+        <span class="badge {% if queue.status == 'active' %}bg-success{% elif queue.status == 'completed' %}bg-secondary{% else %}bg-warning{% endif %} fs-6">
+            {{ queue.get_status_display }}
+        </span>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <!-- Queue Progress -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Queue Progress</h5>
+            </div>
+            <div class="card-body">
+                <div class="progress queue-progress mb-3">
+                    <div class="progress-bar" role="progressbar" 
+                         style="width: {{ queue.total_members|multiply:8.33 }}%"
+                         aria-valuenow="{{ queue.total_members }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="12">
+                    </div>
+                </div>
+                <p class="text-center">
+                    <strong>{{ queue.total_members }}/12</strong> members joined
+                </p>
+            </div>
+        </div>
+
+        <!-- Members List -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Queue Members</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                {% for member in queue.queue_members.all %}
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="mb-0">{{ member.user.username }}</h6>
+                            <small class="text-muted">Position: {{ member.position }}</small>
+                        </div>
+                        <span class="badge {% if member.payment_status == 'confirmed' %}bg-success{% elif member.payment_status == 'paid_out' %}bg-info{% else %}bg-warning{% endif %}">
+                            {{ member.get_payment_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <!-- Queue Info -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Queue Information</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <div class="list-group-item">
+                    <small class="text-muted d-block">Deposit Amount</small>
+                    <strong>${{ queue.tier.deposit_amount }}</strong>
+                </div>
+                <div class="list-group-item">
+                    <small class="text-muted d-block">Total Pool</small>
+                    <strong>${{ queue.total_amount }}</strong>
+                </div>
+                <div class="list-group-item">
+                    <small class="text-muted d-block">Payout Amount</small>
+                    <strong>${{ queue.payout_amount }}</strong>
+                </div>
+                <div class="list-group-item">
+                    <small class="text-muted d-block">Created By</small>
+                    <strong>{{ queue.creator.username }}</strong>
+                </div>
+                <div class="list-group-item">
+                    <small class="text-muted d-block">Created On</small>
+                    <strong>{{ queue.created_at|date:"M d, Y" }}</strong>
+                </div>
+            </div>
+        </div>
+
+        {% if user_member and user_member.payment_status == 'pending' %}
+        <!-- Payment Section -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Complete Your Payment</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">Please complete your payment to join this queue.</p>
+                <a href="{% url 'savings:confirm_payment' queue.id %}" class="btn btn-primary d-block">
+                    Confirm Payment
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
